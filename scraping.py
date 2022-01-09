@@ -14,13 +14,14 @@ def scrape_all():
 
     news_title, news_paragraph = mars_news(browser)
 
-    #Run all scarping fiunctoins and store results in dictionary
+    #Run all scraping functions and store results in dictionary
     data = {
         "news_title": news_title,
         "news_paragraph": news_paragraph,
         "featured_image": featured_image(browser),
         "facts": mars_facts(),
-        "last_modified": dt.datetime.now()        
+        "last_modified": dt.datetime.now(),
+        "hemisphere_images": hemisphere_images(browser)        
     }
 
     #stop webdriver and return data
@@ -95,6 +96,39 @@ def mars_facts():
 
     #convert DataFrame to html, add bootstrap
     return df.to_html()
+
+def hemisphere_images(browser):
+    #Scrape Mars hemispheres images
+    #visit the url
+    url = 'https://marshemispheres.com/'
+    browser.visit(url)
+
+    #Create list to hold images and titles
+    hemisphere_image_urls = []
+
+    #error handling
+    try:
+        #loop through hemispheres
+        for hemis in range(4):
+            #create empty dictionary
+            hemispheres = {}
+            #click hemisphere title link
+            browser.find_by_tag('h3')[hemis].click()
+            #find full image url
+            element = browser.links.find_by_text('Sample')
+            img_url = element['href']
+            #find title 
+            title = browser.find_by_tag('h2').text
+            #save title and url to dictionary and append to list
+            hemispheres['img_url'] = img_url
+            hemispheres['title'] = title
+            hemisphere_image_urls.append(hemispheres)
+            #set browser back to initial url for next loop
+            browser.back()
+    except AttributeError:
+        return None 
+    
+    return hemisphere_image_urls
 
 if __name__ == '__main__':
     #if running as script, print scraped data
